@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Check, ChevronLeft, ChevronRight, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'react-toastify';
+import { motion } from 'framer-motion';
 import { articlesAPI, contractorsAPI, inventoryAPI, productionAPI } from '../../services/api';
 import { Button, Input, PageHeader, Select } from '../../components/ui';
 
@@ -186,7 +187,7 @@ const ProductionForm = () => {
   return (
     <div className="h-full flex flex-col gap-5">
       <PageHeader title={type === 'issue' ? (isEdit ? 'Edit Issue' : 'Issue Production') : (isEdit ? 'Edit Receive' : 'Receive Production')} subtitle={type === 'issue' ? 'Send fabric tags to contractor' : `Step ${step} / 2`} showBack backPath="/production" />
-      <form onSubmit={handleSubmit} className="flex-1 min-h-0 flex">
+      <motion.form initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} onSubmit={handleSubmit} className="flex-1 min-h-0 flex">
         <section className="bg-white border border-slate-300 rounded-3xl p-1.5 flex flex-col flex-1">
           {(type === 'issue' || step === 1) && (
             <>
@@ -267,7 +268,7 @@ const ProductionForm = () => {
             )}
           </div>
         </section>
-      </form>
+      </motion.form>
     </div>
   );
 };

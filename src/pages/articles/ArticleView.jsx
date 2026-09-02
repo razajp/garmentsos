@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Edit, Trash2, Printer, Calendar, Tag, Box, Wallet, ImageIcon, Maximize2, Layers, Activity, X } from 'lucide-react';
-import { articlesAPI } from '../../services/api';
+import { Edit, Trash2, Printer, Calendar, Tag, Box, Wallet, Layers, X } from 'lucide-react';
+import { articlesAPI, productionAPI } from '../../services/api';
 import { MetricTile, InfoRow } from '../../components/ui/Card'; 
 import { Button, ConfirmationModal, Loader, PageHeader } from '../../components/ui';
 import { toast } from 'react-toastify';
@@ -12,25 +12,29 @@ const ArticleView = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [article, setArticle] = useState(null);
+  const [receivings, setReceivings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [deleteModal, setDeleteModal] = useState(false);
-  const [isMaximized, setIsMaximized] = useState(false);
   const { config } = useConfig();
   const imageSrc = article?.image?.startsWith('data:') ? article.image : `http://localhost:5000/${article?.image}`;
+  const setIsMaximized = () => {};
 
   useEffect(() => {
-    articlesAPI.getOne(id)
-      .then(res => setArticle(res.data.data))
+    Promise.all([
+      articlesAPI.getOne(id),
+      productionAPI.getAll({ type: 'receive', limit: 1000, sortBy: 'production_date', order: 'desc' }),
+    ])
+      .then(([articleRes, productionRes]) => {
+        setArticle(articleRes.data.data);
+        setReceivings(
+          productionRes.data.data
+            .filter((ticket) => Number(ticket.article_id) === Number(id))
+            .sort((a, b) => new Date(b.production_date) - new Date(a.production_date))
+        );
+      })
       .catch(() => navigate('/articles'))
       .finally(() => setLoading(false));
   }, [id, navigate]);
-
-  const stats = useMemo(() => {
-    if (!article) return null;
-    const cost = article.cost || article.total_cost || 0;
-    const margin = article.sales_rate ? (((article.sales_rate - cost) / article.sales_rate) * 100).toFixed(1) : 0;
-    return { margin, isLoss: margin < 0 };
-  }, [article]);
 
   const handleDelete = async () => {
     try {
@@ -42,7 +46,8 @@ const ArticleView = () => {
     }
   };
 
-  const hasAnyRates = article?.rates && article?.rates?.length > 0;
+  const stockPkt = receivings.reduce((sum, ticket) => sum + (Number(ticket.article_quantity) || 0), 0);
+  const stockPcs = stockPkt * (Number(article?.unit) || 0);
 
   if (loading) return <Loader size="lg" className="h-full" />;
 
@@ -164,89 +169,63 @@ const ArticleView = () => {
           {/* Primary Metrics */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             <MetricTile label="Cost Price" value={`Rs. ${(article.cost || article.total_cost || 0).toLocaleString()}`} icon={Wallet} variant="warning" />
-            <MetricTile label="Retail Price" value={`Rs. ${(article.sales_rate || 0).toLocaleString()}`} icon={Tag} variant="success" />
-            <MetricTile 
-              label="Profit Margin" 
-              value={`${stats.margin}%`} 
-              variant={stats.isLoss ? "danger" : "info"} 
-            />
+            <MetricTile label="Net Rate" value={`Rs. ${(article.net_rate || 0).toLocaleString()}`} icon={Tag} variant="info" />
+            <MetricTile label="Sale Rate" value={`Rs. ${(article.sales_rate || 0).toLocaleString()}`} icon={Tag} variant="success" />
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-            {/* Left Column: Image & Breakdown */}
+            {/* Left Column: Receivings */}
             <div className="lg:col-span-8 space-y-6">
-              {/* Article Image Container */}
-              <div onClick={() => article.image && setIsMaximized(true)} className="relative group overflow-hidden rounded-3xl bg-slate-100 border border-slate-200 aspect-[16/10] shadow-inner">
-                {article.image ? (
-                  <>
-                    <img 
-                      src={imageSrc} 
-                      alt={article.article_no}
-                      className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-end p-8">
-                      <div className="bg-slate-100 border border-slate-300 p-3 rounded-2xl shadow-xl">
-                          <Maximize2 className="text-slate-500" size={20} />
-                      </div>
-                    </div>
-                  </>
-                ) : (
-                  <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 gap-4 bg-slate-50">
-                    <div className="w-20 h-20 rounded-2xl bg-white flex items-center justify-center border border-slate-200">
-                      <ImageIcon size={32} strokeWidth={1.5} />
-                    </div>
-                    <p className="text-[10px] font-medium uppercase tracking-widest">No Image Uploaded</p>
+              <section className="bg-white rounded-3xl border border-slate-200 p-1.5 shadow-sm relative overflow-hidden">
+                <div className="p-6 border-b border-slate-200 flex justify-between items-center">
+                  <div>
+                    <h3 className="text-xl font-bold text-slate-900">Production Receivings</h3>
+                    <p className="text-sm text-slate-500 mt-1">Stock is calculated from these receive tickets.</p>
                   </div>
-                )}
-              </div>
-
-              {/* Detailed Costing Breakdown */}
-              <section className="bg-white rounded-3xl border border-slate-200 p-10 shadow-sm relative overflow-hidden">
-                <div className="flex justify-between items-center mb-7">
-                  <h3 className="text-xl font-bold text-slate-900">Production Costing</h3>
-                  {!hasAnyRates && (
-                    <span className="px-3 py-1 bg-amber-100/80 text-amber-700 text-[11px] font-medium uppercase rounded-full border border-amber-300">
-                      No Costs Assigned
-                    </span>
-                  )}
+                  <div className="text-right">
+                    <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500">Current Stock</p>
+                    <p className="text-lg font-black text-slate-900">{stockPkt.toLocaleString()} pkt / {stockPcs.toLocaleString()} pcs</p>
+                  </div>
                 </div>
-
-                {hasAnyRates ? (
-                  <div className="space-y-3">
-                    {/* Total Row */}
-                    <div className="flex justify-between items-center px-4 py-3.5 bg-slate-800 text-white rounded-xl mt-6">
-                      <span className="text-sm font-bold uppercase tracking-wider">Total Production Cost</span>
-                      <span className="text-xl font-black">Rs. {(article.cost || article.total_cost || 0).toLocaleString()}</span>
-                    </div>
-
-                    <hr className='border-slate-400' />
-
-                    {article.rates.map((item, i) => (
-                      <div 
-                        key={i} 
-                        className="flex justify-between items-center p-2 hover:bg-slate-100 transition-all duration-300 rounded-2xl border border-slate-300 hover:border-slate-400 group"
-                      >
-                        <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 rounded-lg bg-slate-100 border border-slate-300 flex items-center justify-center group-hover:bg-white transition-all duration-300">
-                            <span className="text-sm font-bold text-slate-500">{i + 1}</span>
-                          </div>
-                          <span className="text-sm font-semibold text-slate-700">{item.description}</span>
-                        </div>
-                        <span className="text-base font-semibold text-slate-900 bg-slate-100 px-4 py-2 rounded-lg border border-slate-300 group-hover:bg-white transition-all duration-300">
-                          Rs. {item.price.toLocaleString()}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center justify-center py-12 border-2 border-dashed border-slate-300 rounded-2xl bg-slate-100">
-                    <div className="p-4 bg-white rounded-2xl border border-slate-300 mb-4">
-                      <Activity className="text-slate-500" size={32} />
-                    </div>
-                    <p className="text-sm font-bold text-slate-900 tracking-wide">No Financial Data Available</p>
-                    <p className="text-xs text-slate-500 mt-1">Please add rate items to see the cost breakdown.</p>
-                  </div>
-                )}
+                <div className="p-6 overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-slate-100 text-[11px] uppercase tracking-wider text-slate-500">
+                      <tr>
+                        <th className="px-4 py-3 text-left rounded-l-2xl">Date</th>
+                        <th className="px-4 py-3 text-left">Ticket</th>
+                        <th className="px-4 py-3 text-left">Contractor</th>
+                        <th className="px-4 py-3 text-right">Pkt</th>
+                        <th className="px-4 py-3 text-right">Pcs</th>
+                        <th className="px-4 py-3 text-right">Production Cost</th>
+                        <th className="px-4 py-3 text-right">Tag Cost</th>
+                        <th className="px-4 py-3 text-right rounded-r-2xl">Total Cost</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {!receivings.length && (
+                        <tr>
+                          <td colSpan={8} className="px-4 py-10 text-center text-sm text-slate-500">No production received for this article yet.</td>
+                        </tr>
+                      )}
+                      {receivings.map((ticket) => {
+                        const pkt = Number(ticket.article_quantity) || 0;
+                        const pcs = pkt * (Number(article.unit) || 0);
+                        return (
+                          <tr key={ticket.id} onClick={() => navigate(`/production/view/${ticket.id}`)} className="border-b border-slate-200 hover:bg-slate-50 cursor-pointer transition-all duration-300">
+                            <td className="px-4 py-3 text-slate-700">{new Date(ticket.production_date).toLocaleDateString('en-PK')}</td>
+                            <td className="px-4 py-3 font-bold text-slate-800">{ticket.ticket_no}</td>
+                            <td className="px-4 py-3 text-slate-600">{ticket.contractor_name || 'Unknown Contractor'}</td>
+                            <td className="px-4 py-3 text-right font-bold text-slate-800">{pkt.toLocaleString()}</td>
+                            <td className="px-4 py-3 text-right text-slate-600">{pcs.toLocaleString()}</td>
+                            <td className="px-4 py-3 text-right text-slate-600">Rs. {(Number(ticket.cost_per_piece) || 0).toLocaleString()}</td>
+                            <td className="px-4 py-3 text-right text-slate-600">Rs. {(Number(ticket.tag_cost_per_piece) || 0).toLocaleString()}</td>
+                            <td className="px-4 py-3 text-right font-bold text-slate-900">Rs. {(Number(ticket.total_cost_per_piece) || 0).toLocaleString()}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
               </section>
             </div>
 
@@ -257,9 +236,11 @@ const ArticleView = () => {
                 <h4 className="text-[11px] font-medium uppercase tracking-widest text-slate-400 mb-6">Specification Sheet</h4>
                 
                 <div className="space-y-5">
-                  <SidebarItem icon={Layers} label="Fabric Type" value={article.fabric_type} />
-                  <SidebarItem icon={Box} label="Size Ratio" value={article.size} />
-                  <SidebarItem icon={Calendar} label="Stock" value={`${article.stock_pkt || article.quantity || 0} pkt x ${article.unit || 0} pcs`} />
+                  <SidebarItem icon={Layers} label="Season" value={article.season} />
+                  <SidebarItem icon={Box} label="Category" value={article.category} />
+                  <SidebarItem icon={Box} label="Size" value={article.size} />
+                  <SidebarItem icon={Calendar} label="Unit" value={`${article.unit || 0} pcs / pkt`} />
+                  <SidebarItem icon={Calendar} label="Stock" value={`${stockPkt.toLocaleString()} pkt / ${stockPcs.toLocaleString()} pcs`} />
                   <SidebarItem icon={Calendar} label="Created On" value={new Date(article.created_at).toLocaleDateString('en-PK', { day: '2-digit', month: 'short', year: 'numeric' })} />
                 </div>
               </div>
@@ -280,8 +261,7 @@ const ArticleView = () => {
         </motion.div>
       </AnimatePresence>
 
-      <AnimatePresence>
-        {isMaximized && (
+      {false && (
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -331,7 +311,6 @@ const ArticleView = () => {
             </div>
           </motion.div>
         )}
-      </AnimatePresence>
 
       <ConfirmationModal
         isOpen={deleteModal}

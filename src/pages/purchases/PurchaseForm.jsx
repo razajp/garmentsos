@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Check, ArrowLeft, Plus, Trash2, Pencil } from 'lucide-react';
 import { toast } from 'react-toastify';
+import { motion } from 'framer-motion';
 import { purchasesAPI, suppliersAPI, inventoryAPI } from '../../services/api';
 import { Button, Input, Modal, PageHeader, Select } from '../../components/ui';
 
@@ -146,7 +147,7 @@ const PurchaseForm = () => {
   return (
     <div className="h-full flex flex-col gap-5">
       <PageHeader title={isEdit ? 'Update Purchase' : 'Add Purchase'} subtitle="Supplier invoice and inventory items" showBack backPath="/purchases" />
-      <form onSubmit={handleSubmit} className="flex-1 min-h-0 flex">
+      <motion.form initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} onSubmit={handleSubmit} className="flex-1 min-h-0 flex">
         <section className="bg-white border border-slate-300 rounded-3xl p-1.5 flex flex-col flex-1">
           <div className="p-6 pb-5 grid grid-cols-1 md:grid-cols-3 gap-5">
             <Select label="Supplier" value={formData.supplier_id} onChange={(value) => setFormData({ ...formData, supplier_id: value })} options={supplierOptions} />
@@ -227,7 +228,7 @@ const PurchaseForm = () => {
           </div>
           <Button type="submit" loading={loading} variant="dark" size="lg" icon={Check} className="w-full">{isEdit ? 'Save Purchase' : 'Create Purchase'}</Button>
         </aside> */}
-      </form>
+      </motion.form>
 
       <Modal
         isOpen={itemModal.open}

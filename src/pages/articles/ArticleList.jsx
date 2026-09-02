@@ -74,6 +74,7 @@ const Articles = () => {
               { key: "size", label: "Size", sortable: true },
               { key: "category", label: "Category", sortable: true },
               { key: "stock_pkt", label: "Stock-Pkt", sortable: true, align: 'center' },
+              { key: "unit", label: "Unit", sortable: true, align: 'center' },
               { key: "cost", label: "Cost", sortable: true, align: 'center' },
               { key: "net_rate", label: "Net Rate", sortable: true, align: 'center' },
               { key: "sales_rate", label: "Sale Rate", sortable: true, align: 'center' },
@@ -84,7 +85,7 @@ const Articles = () => {
           />
           <tbody>
             {loading ? (
-              <LoadingRow colSpan={9} rows={10} />
+              <LoadingRow colSpan={10} rows={10} />
             ) : articles.length > 0 ? (
               articles.map((article) => (
                 <tr key={article.id} className="border-b border-slate-200 hover:bg-slate-50 transition-all duration-300 cursor-pointer" onClick={() => navigate(`view/${article.id}`)}>
@@ -100,6 +101,9 @@ const Articles = () => {
                   </td>
                   <td className="px-6 py-3.5 text-center font-bold text-slate-800">
                     {(article.stock_pkt || article.quantity || 0).toLocaleString()}
+                  </td>
+                  <td className="px-6 py-3.5 text-center text-slate-600">
+                    {article.unit || 0} pcs
                   </td>
                   <td className="px-6 py-3.5 text-amber-600 font-medium text-center">
                     Rs. {(article.cost || article.total_cost || 0).toLocaleString()}
@@ -131,7 +135,7 @@ const Articles = () => {
             ) : (
               /* Empty State Triggered */
               <EmptyState 
-                colSpan={9} 
+                colSpan={10} 
                 onReset={resetFilters}
                 // Agar search bar khali hai aur filters bhi nahi hain, toh isFiltering false kar dein
                 isFiltering={filters.search !== '' || activeFilterCount > 0} 
