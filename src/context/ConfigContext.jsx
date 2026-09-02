@@ -1,7 +1,9 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import api from '../services/api';
+import { mockConfig, mockOptions } from '../services/mockData';
 
 const ConfigContext = createContext(null);
+const USE_MOCKS = import.meta.env.VITE_USE_MOCKS !== 'false';
 
 export const useConfig = () => {
   const context = useContext(ConfigContext);
@@ -18,6 +20,14 @@ export const ConfigProvider = ({ children }) => {
   const loadConfig = useCallback(async () => {
     const token = localStorage.getItem('token');
     if (!token) {
+      setLoading(false);
+      return;
+    }
+
+    if (USE_MOCKS) {
+      setConfig(mockConfig);
+      setOptions(mockOptions);
+      setIsExpired(false);
       setLoading(false);
       return;
     }
@@ -55,7 +65,7 @@ export const ConfigProvider = ({ children }) => {
   useEffect(() => { loadConfig(); }, [loadConfig]);
 
   return (
-    <ConfigContext.Provider value={{ config, options, loading, isExpired, loadConfig }}>
+    <ConfigContext.Provider value={{ config, options, loading, isExpired, loadConfig, refreshOptions: loadConfig }}>
       {children}
     </ConfigContext.Provider>
   );

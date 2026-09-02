@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Navigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, Lock, LogIn, Shirt, ShieldCheck, Sparkles, ChevronRight } from 'lucide-react';
+import { Shirt, ShieldCheck, ChevronRight } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { useAuth } from '../context/AuthContext';
 import { useConfig } from '../context/ConfigContext';
@@ -28,10 +28,15 @@ const Login = () => {
       toast.success('Identity Verified. Welcome.');
       navigate('/dashboard');
     } catch (err) {
-      setError(err.response?.data?.message || 'Invalid credentials');
+      setError(err.response?.data?.message || err.message || 'Invalid credentials');
     } finally {
       setLoading(false);
     }
+  };
+
+  const fillDemoAccount = () => {
+    setFormData({ username: 'demo', password: 'demo123' });
+    setError('');
   };
 
   return (
@@ -111,6 +116,14 @@ const Login = () => {
                 </Button>
               </div>
             </form>
+
+            <button
+              type="button"
+              onClick={fillDemoAccount}
+              className="mt-4 w-full text-[10px] font-black uppercase tracking-widest text-indigo-600 hover:text-indigo-800 transition-colors"
+            >
+              Use prototype account
+            </button>
 
             {/* Bottom Support Tag */}
             <div className="mt-8 flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-100 border border-slate-300 rounded-xl">

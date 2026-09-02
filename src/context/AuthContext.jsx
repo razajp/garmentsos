@@ -1,7 +1,9 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import api, { authAPI } from '../services/api';
+import { MOCK_AUTH_TOKEN, MOCK_USER_STORAGE_KEY, mockUsers, withoutPassword } from '../services/mockData';
 
 const AuthContext = createContext(null);
+const USE_MOCKS = import.meta.env.VITE_USE_MOCKS !== 'false';
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
@@ -25,6 +27,13 @@ export const AuthProvider = ({ children }) => {
       setLoading(false);
       return;
     }
+
+    if (USE_MOCKS && token === MOCK_AUTH_TOKEN) {
+      const storedUser = localStorage.getItem(MOCK_USER_STORAGE_KEY);
+      setUser(storedUser ? JSON.parse(storedUser) : withoutPassword(mockUsers[0]));
+      setLoading(false);
+      return;
+    }
     
     try {
       const response = await authAPI.getMe(); // Use authAPI here
@@ -38,6 +47,25 @@ export const AuthProvider = ({ children }) => {
   };
 
   const login = async (username, password) => {
+    if (USE_MOCKS) {
+      const normalizedUsername = username.trim().toLowerCase();
+      const matchedUser = mockUsers.find(
+        (mockUser) =>
+          mockUser.username.toLowerCase() === normalizedUsername &&
+          mockUser.password === password
+      );
+
+      if (!matchedUser) {
+        throw new Error('Use demo / demo123 for prototype login');
+      }
+
+      const userData = withoutPassword(matchedUser);
+      localStorage.setItem('token', MOCK_AUTH_TOKEN);
+      localStorage.setItem(MOCK_USER_STORAGE_KEY, JSON.stringify(userData));
+      setUser(userData);
+      return userData;
+    }
+
     const response = await authAPI.login({ username, password });
     const { token, user: userData } = response.data;
     localStorage.setItem('token', token);
@@ -47,10 +75,18 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem(MOCK_USER_STORAGE_KEY);
     setUser(null);
   };
 
   const updateProfile = async (data) => {
+    if (USE_MOCKS) {
+      const updatedUser = { ...user, ...data };
+      localStorage.setItem(MOCK_USER_STORAGE_KEY, JSON.stringify(updatedUser));
+      setUser(updatedUser);
+      return { data: updatedUser };
+    }
+
     const response = await api.put('/auth/profile', data);
     setUser(prev => ({ ...prev, ...response.data.data }));
     return response.data;

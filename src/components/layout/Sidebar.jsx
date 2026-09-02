@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion'; // Added motion and AnimatePresence
-import { LayoutDashboard, Package, Users, Settings, SlidersHorizontal, Shirt, LogOut, ChevronUp } from 'lucide-react';
+import { LayoutDashboard, Package, Users, Settings, SlidersHorizontal, Shirt, LogOut, ChevronUp, Truck, ShoppingCart, Boxes, HardHat, PackageCheck } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useConfig } from '../../context/ConfigContext';
 
@@ -28,6 +28,11 @@ const Sidebar = () => {
   const navItems = [
     { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
     { path: '/articles', icon: Package, label: 'Articles' },
+    { path: '/suppliers', icon: Truck, label: 'Suppliers' },
+    { path: '/purchases', icon: ShoppingCart, label: 'Purchases' },
+    { path: '/inventory', icon: Boxes, label: 'Inventory' },
+    { path: '/contractors', icon: HardHat, label: 'Contractors' },
+    { path: '/production', icon: PackageCheck, label: 'Production' },
     { path: '/options', icon: SlidersHorizontal, label: 'Options' },
     ...(isDeveloper ? [{ path: '/users', icon: Users, label: 'Users' }] : []),
   ];

@@ -16,6 +16,7 @@ const ArticleView = () => {
   const [deleteModal, setDeleteModal] = useState(false);
   const [isMaximized, setIsMaximized] = useState(false);
   const { config } = useConfig();
+  const imageSrc = article?.image?.startsWith('data:') ? article.image : `http://localhost:5000/${article?.image}`;
 
   useEffect(() => {
     articlesAPI.getOne(id)
@@ -26,7 +27,8 @@ const ArticleView = () => {
 
   const stats = useMemo(() => {
     if (!article) return null;
-    const margin = article.sales_rate ? (((article.sales_rate - article.total_cost) / article.sales_rate) * 100).toFixed(1) : 0;
+    const cost = article.cost || article.total_cost || 0;
+    const margin = article.sales_rate ? (((article.sales_rate - cost) / article.sales_rate) * 100).toFixed(1) : 0;
     return { margin, isLoss: margin < 0 };
   }, [article]);
 
@@ -57,7 +59,7 @@ const ArticleView = () => {
             </div>
             <div className="text-right">
               <h2 className="text-xl font-bold leading-none">{article.article_no}</h2>
-              <p className="text-[9px] font-medium uppercase text-slate-600">Fabric: {article.fabric_type}</p>
+              <p className="text-[9px] font-medium uppercase text-slate-600">Unit: {article.unit || 0} pcs / pkt</p>
             </div>
           </div>
 
@@ -77,7 +79,7 @@ const ArticleView = () => {
             </div>
             <div className="px-3 pt-2.5 pb-2 bg-slate-100 border border-slate-400 rounded-lg">
               <span className="block text-[8px] font-bold uppercase text-slate-600 leading-none">Lot Qty</span>
-              <span className="text-[11px] font-semibold leading-none">{article.quantity} pcs</span>
+              <span className="text-[11px] font-semibold leading-none">{article.stock_pkt || article.quantity || 0} pkt</span>
             </div>
           </div>
 
@@ -105,12 +107,12 @@ const ArticleView = () => {
               <h4 className="text-[9px] font-bold uppercase text-slate-600 mb-1">Market Pricing</h4>
               <div className="text-[11px] flex justify-between font-bold">
                 <span>Costing:</span>
-                <span>Rs. {article.total_cost.toLocaleString()}</span>
+                <span>Rs. {(article.cost || article.total_cost || 0).toLocaleString()}</span>
               </div>
               <hr className='my-1 border-slate-300'/>
               <div className="text-[11px] flex justify-between font-bold">
                 <span>Sale Price:</span>
-                <span>Rs. {article.sales_rate.toLocaleString()}</span>
+                <span>Rs. {(article.sales_rate || 0).toLocaleString()}</span>
               </div>
             </div>
             <div className="p-1">
@@ -161,8 +163,8 @@ const ArticleView = () => {
         >
           {/* Primary Metrics */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-            <MetricTile label="Cost Price" value={`Rs. ${article.total_cost.toLocaleString()}`} icon={Wallet} variant="warning" />
-            <MetricTile label="Retail Price" value={`Rs. ${article.sales_rate.toLocaleString()}`} icon={Tag} variant="success" />
+            <MetricTile label="Cost Price" value={`Rs. ${(article.cost || article.total_cost || 0).toLocaleString()}`} icon={Wallet} variant="warning" />
+            <MetricTile label="Retail Price" value={`Rs. ${(article.sales_rate || 0).toLocaleString()}`} icon={Tag} variant="success" />
             <MetricTile 
               label="Profit Margin" 
               value={`${stats.margin}%`} 
@@ -178,7 +180,7 @@ const ArticleView = () => {
                 {article.image ? (
                   <>
                     <img 
-                      src={`http://localhost:5000/${article.image}`} 
+                      src={imageSrc} 
                       alt={article.article_no}
                       className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
                     />
@@ -214,7 +216,7 @@ const ArticleView = () => {
                     {/* Total Row */}
                     <div className="flex justify-between items-center px-4 py-3.5 bg-slate-800 text-white rounded-xl mt-6">
                       <span className="text-sm font-bold uppercase tracking-wider">Total Production Cost</span>
-                      <span className="text-xl font-black">Rs. {article.total_cost.toLocaleString()}</span>
+                      <span className="text-xl font-black">Rs. {(article.cost || article.total_cost || 0).toLocaleString()}</span>
                     </div>
 
                     <hr className='border-slate-400' />
@@ -257,7 +259,7 @@ const ArticleView = () => {
                 <div className="space-y-5">
                   <SidebarItem icon={Layers} label="Fabric Type" value={article.fabric_type} />
                   <SidebarItem icon={Box} label="Size Ratio" value={article.size} />
-                  <SidebarItem icon={Calendar} label="Quantity" value={`${article.quantity} - pcs.`} />
+                  <SidebarItem icon={Calendar} label="Stock" value={`${article.stock_pkt || article.quantity || 0} pkt x ${article.unit || 0} pcs`} />
                   <SidebarItem icon={Calendar} label="Created On" value={new Date(article.created_at).toLocaleDateString('en-PK', { day: '2-digit', month: 'short', year: 'numeric' })} />
                 </div>
               </div>
@@ -313,7 +315,7 @@ const ArticleView = () => {
                 }}
               >
                 <img 
-                  src={`http://localhost:5000/${article.image}`} 
+                  src={imageSrc} 
                   alt="Product"
                   className="max-w-full max-h-full object-contain transition-transform duration-200 ease-out hover:scale-[2.5]" 
                   // Hover karte hi 2.5 times zoom hoga aur mouse ke saath move karega

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Eye, Edit, Trash2, Plus } from 'lucide-react';
+import { Pencil, Trash2, Plus } from 'lucide-react';
 import { toast } from 'react-toastify';
 
 import { articlesAPI } from '../../services/api';
@@ -70,10 +70,12 @@ const Articles = () => {
           <DataTableHeader 
             columns={[
               { key: "article_no", label: "Article No", sortable: true },
-              { key: "Season", label: "Season", sortable: true },
+              { key: "season", label: "Season", sortable: true },
               { key: "size", label: "Size", sortable: true },
               { key: "category", label: "Category", sortable: true },
-              { key: "total_cost", label: "Cost", sortable: true, align: 'center' },
+              { key: "stock_pkt", label: "Stock-Pkt", sortable: true, align: 'center' },
+              { key: "cost", label: "Cost", sortable: true, align: 'center' },
+              { key: "net_rate", label: "Net Rate", sortable: true, align: 'center' },
               { key: "sales_rate", label: "Sale Rate", sortable: true, align: 'center' },
               { key: "actions", label: "Actions", align: 'center' },
             ]}
@@ -82,10 +84,10 @@ const Articles = () => {
           />
           <tbody>
             {loading ? (
-              <LoadingRow colSpan={7} rows={10} />
+              <LoadingRow colSpan={9} rows={10} />
             ) : articles.length > 0 ? (
               articles.map((article) => (
-                <tr key={article.id} className="border-b border-slate-200 hover:bg-slate-50 transition-all duration-300">
+                <tr key={article.id} className="border-b border-slate-200 hover:bg-slate-50 transition-all duration-300 cursor-pointer" onClick={() => navigate(`view/${article.id}`)}>
                   <td className="px-6 py-3.5 font-medium text-slate-700">{article.article_no}</td>
                   <td className="px-6 py-3.5 text-slate-600">{article.season}</td>
                   <td className="px-6 py-3.5 text-slate-600">{article.size}</td>
@@ -96,8 +98,14 @@ const Articles = () => {
                       {article.category}
                     </Badge>
                   </td>
+                  <td className="px-6 py-3.5 text-center font-bold text-slate-800">
+                    {(article.stock_pkt || article.quantity || 0).toLocaleString()}
+                  </td>
                   <td className="px-6 py-3.5 text-amber-600 font-medium text-center">
-                    Rs. {article.total_cost?.toLocaleString()}
+                    Rs. {(article.cost || article.total_cost || 0).toLocaleString()}
+                  </td>
+                  <td className="px-6 py-3.5 text-indigo-600 font-bold text-center">
+                    Rs. {(article.net_rate || 0).toLocaleString()}
                   </td>
                   <td className="px-6 py-3.5 text-emerald-600 font-bold text-center">
                     Rs. {article.sales_rate?.toLocaleString()}
@@ -105,19 +113,13 @@ const Articles = () => {
                   <td className="px-6 py-3.5 text-center">
                     <div className="flex justify-center gap-2">
                       <button 
-                        onClick={() => navigate(`view/${article.id}`)}
-                        className="p-1.5 text-indigo-500 hover:text-indigo-600 transition-all duration-300"
-                      >
-                        <Eye size={18} />
-                      </button>
-                      <button 
-                        onClick={() => navigate(`edit/${article.id}`)}
+                        onClick={(e) => {e.stopPropagation(); navigate(`edit/${article.id}`)}}
                         className="p-1.5 text-amber-500 hover:text-amber-600 transition-all duration-300"
                       >
-                        <Edit size={18} />
+                        <Pencil size={18} />
                       </button>
                       <button 
-                        onClick={() => setDeleteId(article.id)}
+                        onClick={(e) => {e.stopPropagation(); setDeleteId(article.id)}}
                         className="p-1.5 text-red-500 hover:text-red-600 transition-all duration-300"
                       >
                         <Trash2 size={18} />
@@ -129,7 +131,7 @@ const Articles = () => {
             ) : (
               /* Empty State Triggered */
               <EmptyState 
-                colSpan={7} 
+                colSpan={9} 
                 onReset={resetFilters}
                 // Agar search bar khali hai aur filters bhi nahi hain, toh isFiltering false kar dein
                 isFiltering={filters.search !== '' || activeFilterCount > 0} 

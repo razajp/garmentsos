@@ -120,7 +120,7 @@ const Select = forwardRef(({
         onClick={() => !disabled && setIsOpen(!isOpen)}
         onKeyDown={handleKeyDown}
         className={`
-          w-full px-4 py-2.5 bg-white border-2 rounded-xl
+          w-full px-4 py-2 bg-white border-2 rounded-xl
           text-left transition-all duration-200 flex items-center justify-between
           focus:outline-none focus:ring-4 focus:ring-indigo-50 focus:border-indigo-600
           disabled:cursor-not-allowed
@@ -193,7 +193,7 @@ const Select = forwardRef(({
                     }}
                     onMouseEnter={() => setHighlightedIndex(idx)}
                     className={`
-                      w-full px-4 py-2.5 mb-1 text-left text-sm font-medium rounded-xl flex items-center justify-between transition-all
+                      w-full px-4 py-2 mb-1 text-left text-sm font-medium rounded-xl flex items-center justify-between transition-all
                       ${opt.value === value 
                         ? 'bg-indigo-600 text-white' 
                         : highlightedIndex === idx 

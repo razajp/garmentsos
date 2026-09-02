@@ -10,6 +10,11 @@ import MainLayout from './layouts/MainLayout';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import { ArticleList, ArticleForm, ArticleView } from './pages/articles';
+import { SupplierList, SupplierForm, SupplierView } from './pages/suppliers';
+import { PurchaseList, PurchaseForm, PurchaseView } from './pages/purchases';
+import { InventoryList } from './pages/inventory';
+import { ContractorList, ContractorForm, ContractorView } from './pages/contractors';
+import { ProductionList, ProductionForm, ProductionView } from './pages/production';
 import Users from './pages/Users';
 import Options from './pages/Options';
 import Settings from './pages/Settings';
@@ -84,6 +89,23 @@ function App() {
           <Route path="articles/new" element={<ArticleForm />} />
           <Route path="articles/edit/:id" element={<ArticleForm />} />
           <Route path="articles/view/:id" element={<ArticleView />} />
+          <Route path="suppliers" element={<SupplierList />} />
+          <Route path="suppliers/new" element={<SupplierForm />} />
+          <Route path="suppliers/edit/:id" element={<SupplierForm />} />
+          <Route path="suppliers/view/:id" element={<SupplierView />} />
+          <Route path="purchases" element={<PurchaseList />} />
+          <Route path="purchases/new" element={<PurchaseForm />} />
+          <Route path="purchases/edit/:id" element={<PurchaseForm />} />
+          <Route path="purchases/view/:id" element={<PurchaseView />} />
+          <Route path="inventory" element={<InventoryList />} />
+          <Route path="contractors" element={<ContractorList />} />
+          <Route path="contractors/new" element={<ContractorForm />} />
+          <Route path="contractors/edit/:id" element={<ContractorForm />} />
+          <Route path="contractors/view/:id" element={<ContractorView />} />
+          <Route path="production" element={<ProductionList />} />
+          <Route path="production/:mode" element={<ProductionForm />} />
+          <Route path="production/:mode/edit/:id" element={<ProductionForm />} />
+          <Route path="production/view/:id" element={<ProductionView />} />
           <Route path="options" element={<Options />} />
           <Route path="users" element={
             <ProtectedRoute requireDeveloper>

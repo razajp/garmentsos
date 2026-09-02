@@ -6,6 +6,16 @@ const pageTitles = {
   '/dashboard': 'Dashboard',
   '/articles': 'Articles',
   '/articles/new': 'New Article',
+  '/suppliers': 'Suppliers',
+  '/suppliers/new': 'New Supplier',
+  '/purchases': 'Purchases',
+  '/purchases/new': 'New Purchase',
+  '/inventory': 'Inventory',
+  '/contractors': 'Contractors',
+  '/contractors/new': 'New Contractor',
+  '/production': 'Production',
+  '/production/issue': 'Issue Production',
+  '/production/receive': 'Receive Production',
   '/users': 'User Management',
   '/options': 'Manage Options',
   '/settings': 'Settings',
@@ -23,6 +33,27 @@ const MainLayout = () => {
     }
     if (location.pathname.includes('/articles/view/')) {
       return 'Article Details';
+    }
+    if (location.pathname.includes('/suppliers/edit/')) {
+      return 'Edit Supplier';
+    }
+    if (location.pathname.includes('/suppliers/view/')) {
+      return 'Supplier Details';
+    }
+    if (location.pathname.includes('/purchases/edit/')) {
+      return 'Edit Purchase';
+    }
+    if (location.pathname.includes('/purchases/view/')) {
+      return 'Purchase Details';
+    }
+    if (location.pathname.includes('/contractors/edit/')) {
+      return 'Edit Contractor';
+    }
+    if (location.pathname.includes('/contractors/view/')) {
+      return 'Contractor Details';
+    }
+    if (location.pathname.includes('/production/view/')) {
+      return 'Production Ticket';
     }
     return 'Dashboard';
   };

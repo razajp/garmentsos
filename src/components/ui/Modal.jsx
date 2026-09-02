@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const Modal = ({ isOpen, onClose, title, children, footer, type = 'default' }) => {
+const Modal = ({ isOpen, onClose, title, children, footer, type = 'default', size = 'md' }) => {
   // ESC key listener
   useEffect(() => {
     const handleEsc = (e) => {
@@ -15,6 +15,13 @@ const Modal = ({ isOpen, onClose, title, children, footer, type = 'default' }) =
   const typeStyles = {
     danger: 'border-t-4 border-red-500',
     default: 'border-slate-100'
+  };
+
+  const sizeStyles = {
+    sm: 'max-w-sm',
+    md: 'max-w-md',
+    lg: 'max-w-2xl',
+    xl: 'max-w-4xl',
   };
 
   return (
@@ -43,7 +50,7 @@ const Modal = ({ isOpen, onClose, title, children, footer, type = 'default' }) =
                 bounce: 0.3 
             }}
             className={`
-              relative bg-white rounded-3xl max-w-md w-full p-2
+              relative bg-white rounded-3xl ${sizeStyles[size] || sizeStyles.md} w-full p-2
               border ${typeStyles[type]} shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)]
               overflow-hidden
             `}

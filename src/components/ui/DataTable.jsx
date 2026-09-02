@@ -1,10 +1,10 @@
 import React from "react";
 import { DataTablePagination } from "./DataTablePagination";
-import { ListFilter } from "lucide-react";
+import { ListFilter, Printer } from "lucide-react";
 import Button from "./Button";
 import { motion, AnimatePresence } from "framer-motion";
 
-export default function DataTable({ title, onFilter, onExport, children, pagination, onPageChange }) {
+export default function DataTable({ title, onFilter, onPrint, children, pagination, onPageChange }) {
   return (
     <AnimatePresence>
       <motion.div 
@@ -29,12 +29,12 @@ export default function DataTable({ title, onFilter, onExport, children, paginat
               Filters
             </Button>
             <Button
-              onClick={onExport}
+              onClick={onPrint}
               size="md"
-              icon={ListFilter}
+              icon={Printer}
               variant="outline"
             >
-              Export
+              Print
             </Button>
           </div>
         </div>
